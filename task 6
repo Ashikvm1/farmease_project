@@ -1,0 +1,12 @@
+void main() {
+  var num1 = 5;
+
+  var num2 = 3;
+
+  var result = sum(num1, num2);
+  print("The sum is $result");
+}
+
+int sum(var num1, var num2) {
+  return num1 + num2;
+}
