@@ -1,0 +1,240 @@
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'package:flutter/material.dart';
+
+class DatabaseHelper {
+  static final DatabaseHelper _instance = DatabaseHelper.internal();
+
+  factory DatabaseHelper() => _instance;
+
+  static Database? _database;
+
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await initDB();
+    return _database!;
+  }
+
+  DatabaseHelper.internal();
+
+  Future<Database> initDB() async {
+    String path = join(await getDatabasesPath(), 'my_database.db');
+    return await openDatabase(path, version: 1, onCreate: _createDB);
+  }
+
+  void _createDB(Database db, int newVersion) async {
+    await db.execute('''
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE,
+        password TEXT
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE my_table (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        age INTEGER
+      )
+    ''');
+  }
+
+  Future<int> insertUser(Map<String, dynamic> row) async {
+    Database db = await database;
+    return await db.insert('users', row);
+  }
+
+  Future<Map<String, dynamic>?> getUser(String username, String password) async {
+    Database db = await database;
+    List<Map<String, dynamic>> result = await db.query(
+      'users',
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
+    );
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+
+  Future<int> insert(Map<String, dynamic> row) async {
+    Database db = await database;
+    return await db.insert('my_table', row);
+  }
+
+  Future<List<Map<String, dynamic>>> queryAll() async {
+    Database db = await database;
+    return await db.query('my_table');
+  }
+
+  Future<int> delete(int id) async {
+    Database db = await database;
+    return await db.delete('my_table', where: 'id = ?', whereArgs: [id]);
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Database Demo',
+      home: LoginPage(),
+    );
+  }
+}
+
+class LoginPage extends StatefulWidget {
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  String? _username, _password;
+  DatabaseHelper _databaseHelper = DatabaseHelper();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Login'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Username'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your username';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _username = value,
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Password'),
+                obscureText: true,
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your password';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _password = value,
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                child: Text('Login'),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    Map<String, dynamic>? user = await _databaseHelper.getUser(_username!, _password!);
+                    if (user != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => MyHomePage()),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Invalid username or password')),
+                      );
+                    }
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  @override
+  _MyHomePageState createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  DatabaseHelper _databaseHelper = DatabaseHelper();
+  final _formKey = GlobalKey<FormState>();
+  String? _name, _age;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Database Demo'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your name';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _name = value,
+              ),
+              TextFormField(
+                decoration: InputDecoration(labelText: 'Age'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your age';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _age = value,
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                child: Text('Insert Data'),
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    Map<String, dynamic> row = {
+                      'name': _name,
+                      'age': int.parse(_age!),
+                    };
+                    int id = await _databaseHelper.insert(row);
+                    print('Inserted row with id: $id');
+                  }
+                },
+              ),
+              ElevatedButton(
+                child: Text('Query Data'),
+                onPressed: () async {
+                  List<Map<String, dynamic>> data = await _databaseHelper.queryAll();
+                  print(data);
+                },
+              ),
+              ElevatedButton(
+                child: Text('Delete Data'),
+                onPressed: () async {
+                  await _databaseHelper.delete(1);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
