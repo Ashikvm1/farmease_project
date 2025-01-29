@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Page</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="account.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .header {
+            background-color: #232f3e;
+            color: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .container {
+            padding: 20px;
+        }
+        .profile {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .profile img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-right: 20px;
+            object-fit: cover;
+        }
+        .profile button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .profile button:hover {
+            background-color: #0056b3;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            margin-bottom: 10px;
+        }
+        .section button {
+            padding: 10px 15px;
+            background-color: #232f3e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .section button:hover {
+            background-color: #3a4455;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Hello, User</h1>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="container">
+        <!-- Profile Section -->
+        <div class="profile">
+            <img id="profile-pic" src="images\def_img.jpeg" alt="Profile Picture">
+            <div>
+                <button onclick="changeProfilePicture()">Change Profile Picture</button>
+                <br><br>
+                <button onclick="editAccountName()">Edit Account Name</button>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div class="section">
+            <h2>Your Orders</h2>
+            <button onclick="viewOrders()">View Orders</button>
+        </div>
+
+        <!-- Buy Again Section -->
+        <div class="section">
+            <h2>Buy Again</h2>
+            <button onclick="buyAgain()">View Recommendations</button>
+        </div>
+
+        <!-- Lists Section -->
+        <div class="section">
+            <h2>Your Lists</h2>
+            <button onclick="viewLists()">See All Lists</button>
+        </div>
+    </div>
+
+    <script>
+        // Functions to handle profile updates and navigation
+        function changeProfilePicture() {
+            const newPic = prompt("Enter the URL of the new profile picture:");
+            if (newPic) {
+                document.getElementById("profile-pic").src = newPic;
+                alert("Profile picture updated successfully!");
+            }
+        }
+
+        function editAccountName() {
+            const newName = prompt("Enter your new account name:");
+            if (newName) {
+                document.querySelector(".header h1").textContent = `Hello, ${newName}`;
+                alert("Account name updated successfully!");
+            }
+        }
+
+        function logout() {
+            alert("Logged out successfully!");
+            // Redirect to login page
+            window.location.href = "index.html";
+        }
+
+        function viewOrders() {
+            alert("Navigating to your orders...");
+            // Redirect to orders page
+            window.location.href = "orders.html";
+        } 
+
+        function buyAgain() {
+            alert("Showing recommendations...");
+            // Redirect to recommendations page
+            window.location.href = "recommendations.html";
+        }
+
+        function viewLists() {
+            alert("Opening your lists...");
+            // Redirect to lists page
+            window.location.href = "lists.html";
+        }
+    </script>
+</body>
+</html>
