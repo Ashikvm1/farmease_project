@@ -23,26 +23,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $farmer_name = $_POST['farmer_name'];
     $phone_number = $_POST['phone_number'];
     $farmer_email = $_POST['farmer_email'];
-
-    // Handle file upload
-    $target_dir = "uploads/"; // Directory to store uploaded files
-    $target_file = $target_dir . basename($_FILES["product_image"]["name"]);
-    
-    // Check if uploads directory exists, if not create it
-    if (!is_dir($target_dir)) {
-        mkdir($target_dir, 0755, true);
-    }
-
-    // Move the uploaded file to the target directory
-    if (move_uploaded_file($_FILES["product_image"]["tmp_name"], $target_file)) {
-        echo "File uploaded successfully: $target_file<br>";
-    } else {
-        echo "Error uploading file.<br>";
-    }
+    $product_image = $_POST['product_image']; // Image URL input from user
 
     // Prepare and bind
     $stmt = $conn->prepare("INSERT INTO products (name, price, category, stock, farmer_name, phone_number, farmer_email, product_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sdsssiss", $name, $price, $category, $stock, $farmer_name, $phone_number, $farmer_email, $target_file);
+    $stmt->bind_param("sdsssiss", $name, $price, $category, $stock, $farmer_name, $phone_number, $farmer_email, $product_image);
 
     // Execute the statement
     if ($stmt->execute()) {
