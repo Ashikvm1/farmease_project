@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extended Weather Forecast</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background-color: #f0f0f0; }
+        .container { background: white; padding: 20px; border-radius: 10px; display: inline-block; }
+        h1 { color: #333; }
+        .forecast-item { margin: 10px 0; padding: 10px; background: #e0e0e0; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📅 Extended Weather Forecast</h1>
+        {% for day in forecast %}
+            <div class="forecast-item">
+                <h3>{{ day.date }}</h3>
+                <p>Weather: <b>{{ day.condition }}</b> {{ day.emoji }}</p>
+                <p>Temperature: <b>{{ day.temperature }}°C</b></p>
+            </div>
+        {% endfor %}
+        <br>
+        <a href="/"><button style="padding: 10px; font-size: 16px; background-color: blue; color: white; border: none; cursor: pointer;">Back to Live Weather</button></a>
+    </div>
+</body>
+</html>
