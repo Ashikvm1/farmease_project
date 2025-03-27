@@ -134,10 +134,7 @@
             <button onclick="viewOrders()">View Orders</button>
         </div>
 
-        <div class="section">
-            <h2>Buy Again</h2>
-            <button onclick="buyAgain()">View Recommendations</button>
-        </div>
+        
 
         <div class="section">
             <h2>Your Lists</h2>
@@ -167,13 +164,8 @@
         }
 
         function viewOrders() {
-            alert("Navigating to your orders...");
-            window.location.href = "orders.html";
-        }
-
-        function buyAgain() {
-            alert("Showing recommendations...");
-            window.location.href = "recommendations.html";
+            
+            window.location.href = "orders.php";
         }
 
         function viewLists() {
