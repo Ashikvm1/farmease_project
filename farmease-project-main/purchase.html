@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Product</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <h1 class="logo">FarmEase</h1>
+        </div>
+        <nav style="background-color: #27dd2797; padding: 10px; text-align: center;margin-bottom: 0;">
+            <a href="home.html">Home</a> |
+            <a href="sell.html">Sell Products</a> |  
+            <a href="account.php">Account</a>
+        </nav>
+        <div style="background-color: #14263b;color: aliceblue;margin-top: 0;padding: 5px;">
+            <h2>Purchase Product</h2>
+        </div>
+    </header>
+
+    <main>
+        <section class="purchase-form" style="background-color: aliceblue; justify-items: center;">
+            
+            <h1>Cash on Delivery</h1>
+            <p id="product-details"></p>
+
+            <div id="quantity-section">
+                <label for="quantity" id="quantity-label">Quantity (kg):</label>
+                <input type="number" id="quantity" name="quantity" min="1" max="100" step="0.1" value="1" required>
+            </div>
+
+            <p id="total-price-section">Total Price: ₹<span id="total-price">0.00</span></p>
+
+            <label for="address">Address:</label>
+            <textarea id="address" name="address" required></textarea>
+
+            <label for="pin">PIN Code:</label>
+            <input type="text" id="pin" name="pin" required>
+
+            <label for="mobile">Mobile Number:</label>
+            <input type="text" id="mobile" name="mobile" required>
+
+            <button type="submit" onclick="submitPurchase(event)">Submit Purchase</button>
+        </section>
+    </main>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get('id');
+
+        if (!productId) {
+            alert("No product selected. Redirecting to home...");
+            window.location.href = "home.html";
+        } else {
+            // Fetch product details
+            fetch(`product_details.php?id=${productId}`)
+                .then(response => response.json())
+                .then(products => {
+                    if (products.length > 0) {
+                        const product = products[0]; 
+                        window.isTool = product.category.toLowerCase() === "tools";
+                        window.productPrice = parseFloat(product.price);
+                        window.productStock = parseInt(product.stock);
+
+                        const priceLabel = window.isTool ? "Rent per hour" : "Price per kg";
+
+                        // Hide quantity and total price for tools
+                        if (window.isTool) {
+                            document.getElementById("quantity-section").style.display = "none";
+                            document.getElementById("total-price-section").style.display = "none";
+                        }
+
+                        document.getElementById("product-details").textContent = 
+                            `${priceLabel}: ₹${window.productPrice}, Available Stock: ${window.productStock}`;
+
+                        // Update total price dynamically
+                        document.getElementById("quantity").addEventListener('input', function() {
+                            let quantity = window.isTool ? 1 : parseFloat(this.value);
+
+                            // **Fix: Stock validation only for non-tool products**
+                            if (!window.isTool && quantity > window.productStock) {
+                                alert("Insufficient stock available.");
+                                this.value = 0;
+                                quantity = 0;
+                            }
+
+                            document.getElementById("total-price").textContent = 
+                                (window.productPrice * quantity).toFixed(2);
+                        });
+
+                        // Initialize total price correctly
+                        document.getElementById("total-price").textContent = 
+                            (window.productPrice * parseFloat(document.getElementById("quantity").value || 0)).toFixed(2);
+
+                    } else {
+                        alert("Product not found.");
+                    }
+                });
+        }
+
+        function submitPurchase(event) {
+            event.preventDefault();
+
+            const quantity = window.isTool ? 1 : parseFloat(document.getElementById("quantity").value);
+            const address = document.getElementById("address").value.trim();
+            const pin = document.getElementById("pin").value.trim();
+            const mobile = document.getElementById("mobile").value.trim();
+
+            // Mobile validation (10 digits, starting with 6, 7, 8, or 9)
+            const mobilePattern = /^[6789]\d{9}$/;
+            if (!mobilePattern.test(mobile)) {
+                alert("Enter a valid phone number (10 digits, starting with 6, 7, 8, or 9).");
+                return;
+            }
+
+            // Address validation (at least 10 characters, not just numbers)
+            if (address.length < 10 || /^\d+$/.test(address)) {
+                alert("Enter a valid address (at least 10 characters and not just numbers).");
+                return;
+            }
+
+            // PIN validation (exactly 6 digits)
+            const pinPattern = /^\d{6}$/;
+            if (!pinPattern.test(pin)) {
+                alert("Enter a valid PIN code (exactly 6 digits).");
+                return;
+            }
+
+            // **Fix: Quantity validation only for products, NOT tools**
+            if (!window.isTool && (quantity <= 0 || quantity > window.productStock)) {
+                alert("Please select a valid quantity.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('id', productId);
+            formData.append('quantity', quantity); // Always 1 for tools
+            formData.append('address', address);
+            formData.append('pin', pin);
+            formData.append('mobile', mobile);
+
+            // Process the purchase request
+            fetch('process_purchase.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Purchase successful!");
+                    window.location.href = "home.html";
+                } else {
+                    alert("Error in purchase. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Failed to submit purchase.");
+            });
+        }
+    </script>
+</body>
+</html>
